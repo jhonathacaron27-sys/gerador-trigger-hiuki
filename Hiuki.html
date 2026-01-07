@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GERADOR DO HIUKI</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --z-bg:0;
+  --z-content:2;
+
+  --bg:#050505;
+  --panel:#0b0b0b;
+  --red:#ffffff;
+  --red-soft:#ff2a2a55;
+  --border:#2a0000;
+  --text:#eaeaea;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'JetBrains Mono',monospace;
+  background:#050505;
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  z-index:var(--z-content);
+}
+
+header{
+  padding:25px;
+  text-align:center;
+}
+
+header h1{
+  font-size:34px;
+  font-weight:700;
+  background:linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  background-size:400% 400%;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:rgb 6s linear infinite;
+}
+
+@keyframes rgb{
+  0%{background-position:0%}
+  100%{background-position:400%}
+}
+
+header p{
+  opacity:.8;
+  margin-top:5px;
+}
+
+.main{
+  width:95%;
+  max-width:1400px;
+  margin:20px auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.editor{
+  backdrop-filter: blur(6px);
+
+  background:linear-gradient(180deg,#0c0c0c,#050505);
+  border:1px solid var(--border);
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 0 25px #000;
+}
+
+.editor header{
+  padding:10px 15px;
+  background:#090909;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+  color:var(--red);
+}
+
+textarea{
+  flex:1;
+  background:transparent;
+  border:none;
+  resize:none;
+  padding:15px;
+  color:#fff;
+  outline:none;
+  font-size:14px;
+}
+
+textarea::placeholder{color:#777}
+
+textarea:focus{
+  background:rgba(255,0,0,0.03);
+}
+
+.controls{
+  width:95%;
+  max-width:1400px;
+  margin:10px auto 30px auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  justify-content:center;
+}
+
+select,input,button{
+  background:#0b0b0b;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+  color:#fff;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  transition:.25s;
+}
+
+select:hover,input:hover,button:hover{
+  border-color:var(--red);
+  box-shadow:0 0 12px var(--red-soft);
+}
+
+button{
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+
+button.primary{
+  background:linear-gradient(135deg,#ff2a2a,#9b0000);
+  border:none;
+}
+
+button.primary:hover{
+  filter:brightness(1.2);
+}
+
+button::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.15),transparent);
+  transform:translateX(-100%);
+}
+
+button:hover::after{transform:translateX(100%);transition:.6s}
+
+footer{
+  margin-top:auto;
+  padding:20px;
+  text-align:center;
+  font-size:14px;
+  color:var(--red);
+  text-shadow:0 0 10px var(--red);
+}
+
+@media(max-width:900px){
+  header h1{font-size:26px}
+  .main{grid-template-columns:1fr}
+  .controls{gap:8px}
+  select,input,button{font-size:12px;padding:10px}
+}
+
+@media(max-width:500px){
+  header{padding:15px}
+  textarea{font-size:13px}
+  button{width:100%}
+}
+}
+/* Neve */
+.snow{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:var(--z-bg);
+}
+
+.snow span{
+  position:absolute;
+  top:-10px;
+  width:4px;height:4px;
+  background:#fff;
+  border-radius:50%;
+  opacity:.8;
+  filter:blur(.5px);
+  animation: fall linear infinite;
+}
+
+@keyframes fall{
+  to{ transform: translateY(110vh); }
+}
+
+</style>
+</head>
+
+<body>
+<div class="snow" id="snow"></div>
+
+<header>
+  <h1>GERADOR DO HIUKI</h1>
+  <p>Conversor avançado de DebugHook → triggerServerEvent</p>
+</header>
+
+<section class="main">
+  <div class="editor">
+    <header>HISTÓRICO</header>
+    <textarea id="history" readonly placeholder="Conversões recentes aparecerão aqui..."></textarea>
+  </div>
+  <div class="editor">
+    <header>ENTRADA (DebugHook)</header>
+    <textarea id="input" placeholder="Cole aqui os triggers capturados pelo DebugHook..."></textarea>
+  </div>
+
+  <div class="editor">
+    <header>SAÍDA (Lua)</header>
+    <textarea id="output" readonly placeholder="Resultado convertido aparecerá aqui..."></textarea>
+  </div>
+</section>
+
+<section class="controls">
+  <button id="settingsBtn">Configurações</button>
+  <button id="export">Exportar .lua</button>
+  <button id="toggleSnow">Neve ON/OFF</button>
+  <button id="toggleRGB">RGB ON/OFF</button>
+  <button id="auto">Auto-detectar target</button>
+  <button id="validate">Validar trigger</button>
+  <button id="toggleSnow">Neve ON/OFF</button>
+  <button id="toggleRGB">RGB ON/OFF</button>
+  <button id="auto">Auto-detectar target</button>
+  <button id="validate">Validar trigger</button>
+  <button id="auto">Auto-detectar target</button>
+  <button id="validate">Validar trigger</button>
+  <select id="target">
+    <option value="root">root (todos)</option>
+    <option value="localPlayer">localPlayer</option>
+    <option value="specific">player específico</option>
+  </select>
+
+  <input id="player" placeholder="Nome do player" style="display:none;width:150px">
+  <input id="repeat" type="number" placeholder="Repetições" style="width:120px">
+  <input id="delay" type="number" placeholder="Delay (ms)" style="width:120px">
+
+  <button class="primary" id="convert">Converter</button>
+  <button id="copy">Copiar</button>
+  <button id="debug">DebugHook</button>
+  <button id="yt">YouTube</button>
+</section>
+
+<footer>GERADOR DO HIUKI © 2026</footer>
+
+<!-- Modal Configurações -->
+<div id="settings" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10;align-items:center;justify-content:center">
+  <div style="background:#0b0b0b;padding:20px;border-radius:12px;min-width:300px">
+    <h3>Configurações</h3><br>
+    <label><input type="checkbox" id="savePrefs" checked> Salvar preferências</label><br><br>
+    <button id="closeSettings">Fechar</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id)
+
+$('target').onchange = () => {
+  $('player').style.display = $('target').value === 'specific' ? 'block' : 'none'
+}
+
+function saveHistory(code){
+  let h = JSON.parse(localStorage.getItem('hiuki_history')||'[]')
+  h.unshift({date:new Date().toLocaleString(),code})
+  h=h.slice(0,10)
+  localStorage.setItem('hiuki_history',JSON.stringify(h))
+  $('history').value = h.map(e=>`[${e.date}]
+${e.code}`).join('
+
+')
+}
+
+function loadHistory(){
+  let h = JSON.parse(localStorage.getItem('hiuki_history')||'[]')
+  $('history').value = h.map(e=>`[${e.date}]
+${e.code}`).join('
+
+')
+}
+
+function splitArgs(str){
+  let r=[],c='',d=0
+  for(let i of str){
+    if(i=='{')d++
+    if(i=='}')d--
+    if(i==','&&d==0){r.push(c.trim());c=''}else c+=i
+  }
+  if(c.trim())r.push(c.trim())
+  return r
+}
+
+function convert(text,target,player){
+  let out=[]
+  let buf='',depth=0
+  text.split('\n').forEach(l=>{
+    if(!l.trim())return
+    buf+=l+'\n'
+    depth+=(l.match(/{/g)||[]).length
+    depth-=(l.match(/}/g)||[]).length
+    if(depth===0 && buf.includes('{')){
+      const m=buf.match(/\{([\s\S]+)\}/)
+      if(!m){buf='';return}
+      let args=splitArgs(m[1])
+      let tgt='root'
+      args=args.filter(a=>{
+        if(a.startsWith('elem:'))return false
+        if(a.includes('player[')){
+          if(target=='localPlayer')tgt='localPlayer'
+          else if(target=='specific'&&player)tgt=`getPlayerFromName("${player}")`
+          return false
+        }
+        return true
+      })
+      let evt=args[0].replace(/"/g,'')
+      let rest=args.slice(1).join(', ')
+      out.push(`triggerServerEvent("${evt}", ${tgt}${rest?`, ${rest}`:''})`)
+      buf=''
+    }
+  })
+  return out.join('\n')
+}
+
+$('convert').onclick=()=>{
+  let code=convert($('input').value,$('target').value,$('player').value)
+  if(!code){$('output').value='Nenhum trigger válido encontrado.';return}
+  let r=+$('repeat').value||1
+  let d=+$('delay').value||0
+  if(r>1 && d>0){
+    $('output').value=`for i=1,${r} do\n  setTimer(function()\n    ${code.replace(/\n/g,'\n    ')}\n  end,${d},1)\nend`
+  }else if(r>1){
+    $('output').value=`for i=1,${r} do\n  ${code.replace(/\n/g,'\n  ')}\nend`
+  }else if(d>0){
+    $('output').value=`setTimer(function()\n  ${code.replace(/\n/g,'\n  ')}\nend,${d},1)`
+  }else $('output').value=code
+  saveHistory($('output').value)
+}
+
+$('copy').onclick=()=>{ if(!$('output').value) return; navigator.clipboard.writeText($('output').value)($('output').value)
+}
+
+$('debug').onclick=()=>{
+  navigator.clipboard.writeText('-- DebugHook avançado DROPS-MTA')
+}
+
+$('yt').onclick=()=>window.open('https://www.youtube.com/@WalkersGeraldo/videos','_blank')
+// Neve
+const snow = document.getElementById('snow')
+for(let i=0;i<120;i++){
+  const s=document.createElement('span')
+  const size=Math.random()*3+2
+  s.style.width=size+'px'
+  s.style.height=size+'px'
+  s.style.left=Math.random()*100+'vw'
+  s.style.animationDuration=(Math.random()*5+5)+'s'
+  s.style.animationDelay=Math.random()*5+'s'
+  snow.appendChild(s)
+}
+
+$('auto').onclick=()=>{
+  if($('input').value.includes('player[')) $('target').value='localPlayer'
+}
+
+$('validate').onclick=()=>{
+  alert($('input').value.includes('{') && $('input').value.includes('}')
+    ? 'Trigger parece válida'
+    : 'Trigger inválida')
+}
+
+let snowEnabled = true
+$('toggleSnow').onclick = () => {
+  snowEnabled = !snowEnabled
+  document.getElementById('snow').style.display = snowEnabled ? 'block' : 'none'
+}
+
+let rgbEnabled = true
+$('toggleRGB').onclick = () => {
+  rgbEnabled = !rgbEnabled
+  document.querySelector('header h1').style.animation = rgbEnabled ? 'rgb 6s linear infinite' : 'none'
+}
+
+$('auto').onclick=()=>{
+  if($('input').value.includes('player[')) $('target').value='localPlayer'
+}
+
+$('validate').onclick=()=>{
+  alert($('input').value.includes('{') && $('input').value.includes('}')
+    ? 'Trigger parece válida'
+    : 'Trigger inválida')
+}
+
+loadHistory()
+
+// Configurações
+$('settingsBtn').onclick=()=> $('settings').style.display='flex'
+$('closeSettings').onclick=()=> $('settings').style.display='none'
+
+// Exportar
+$('export').onclick=()=>{
+  if(!$('output').value) return
+  const blob=new Blob([$(`-- Gerado por GERADOR DO HIUKI\n${$('output').value}`)],{type:'text/plain'})
+  const a=document.createElement('a')
+  a.href=URL.createObjectURL(blob)
+  a.download='hiuki.lua'
+  a.click()
+}
+
+</script>
+
+</body>
+</html>
